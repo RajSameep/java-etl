@@ -21,7 +21,6 @@ public class ParquetPartitionHelper {
             if (partitionKeys.isEmpty()) {
                 return DEFAULT_PARTITION_NAME;
             }
-            log.info(group.toString());
             List<String> segments = partitionKeys.stream()
                     .map(fieldName -> {
                         if (!schema.containsField(fieldName)) {
