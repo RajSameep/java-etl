@@ -11,10 +11,7 @@ import org.slf4j.LoggerFactory;
 
 import java.math.BigDecimal;
 import java.sql.*;
-import java.time.Instant;
-import java.time.LocalDateTime;
 import java.time.LocalTime;
-import java.time.ZoneOffset;
 import java.time.temporal.ChronoField;
 
 public class ResultSetToGroupConverter {
@@ -100,9 +97,7 @@ public class ResultSetToGroupConverter {
                         Timestamp ts = rs.getTimestamp(columnName);
 
                         if (ts != null) {
-                            LocalDateTime ldt = ts.toLocalDateTime();
-                            Instant instant = ldt.toInstant(ZoneOffset.UTC);
-                            long epochMillis = instant.toEpochMilli();
+                            long epochMillis = ts.getTime();
                             group.add(columnName, epochMillis);
                         }
                         break;
