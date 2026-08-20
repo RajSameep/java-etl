@@ -76,7 +76,8 @@ public class ClassToGroupConverter {
                 } else if (value instanceof LocalDate ld) {
                     group.append(name, (int) ld.toEpochDay());
                 } else if (value instanceof LocalDateTime ldt) {
-                    group.append(name, ldt.toInstant(ZoneOffset.UTC).toEpochMilli());
+                    long epochMicros = ldt.toEpochSecond(ZoneOffset.UTC) * 1_000_000 + ldt.getNano() / 1000;
+                    group.append(name, epochMicros);
                 } else {
                     // Default / No-op
                 }

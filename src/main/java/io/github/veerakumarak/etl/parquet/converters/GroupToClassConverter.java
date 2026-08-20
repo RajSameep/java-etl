@@ -10,6 +10,8 @@ import org.apache.parquet.schema.Type;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.time.Instant;
+
 import java.lang.reflect.Field;
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -98,7 +100,12 @@ public class GroupToClassConverter {
             }
         } else if (targetType == LocalDateTime.class) {
             if (logicalType instanceof LogicalTypeAnnotation.TimestampLogicalTypeAnnotation tsType &&
-                    tsType.getUnit() == LogicalTypeAnnotation.TimeUnit.MILLIS &&
+                    tsType.getUnit() == LogicalTypeAnnotation.TimeUnit.MICROS &&
+                    primitiveTypeName == PrimitiveType.PrimitiveTypeName.INT64) {
+                long epochMicros = group.getLong(fieldName, 0);
+                return LocalDateTime.ofInstant(Instant.ofEpochSecond(epochMicros / 1_000_000, (epochMicros % 1_000_000) * 1000), ZoneId.of("UTC"));
+            } else if (logicalType instanceof LogicalTypeAnnotation.TimestampLogicalTypeAnnotation tsType2 &&
+                    tsType2.getUnit() == LogicalTypeAnnotation.TimeUnit.MILLIS &&
                     primitiveTypeName == PrimitiveType.PrimitiveTypeName.INT64) {
                 return DateUtil.convertEpochMiliSecToLocalDateTime(group.getLong(fieldName, 0), ZoneId.of("UTC"));
             } else if (primitiveTypeName == PrimitiveType.PrimitiveTypeName.INT64 && logicalType == null) {

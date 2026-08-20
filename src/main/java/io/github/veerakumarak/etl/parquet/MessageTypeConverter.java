@@ -34,7 +34,7 @@ public class MessageTypeConverter {
             Map.entry(Float.class, (name, b) -> b.optional(PrimitiveType.PrimitiveTypeName.FLOAT).named(name)),
             Map.entry(Boolean.class, (name, b) -> b.optional(PrimitiveType.PrimitiveTypeName.BOOLEAN).named(name)),
             Map.entry(Character.class, (name, b) -> b.optional(PrimitiveType.PrimitiveTypeName.BINARY).as(LogicalTypeAnnotation.stringType()).named(name)),
-            Map.entry(LocalDateTime.class, (name, b) -> b.optional(PrimitiveType.PrimitiveTypeName.INT64).as(LogicalTypeAnnotation.timestampType(false, LogicalTypeAnnotation.TimeUnit.MILLIS)).named(name)),
+            Map.entry(LocalDateTime.class, (name, b) -> b.optional(PrimitiveType.PrimitiveTypeName.INT64).as(LogicalTypeAnnotation.timestampType(false, LogicalTypeAnnotation.TimeUnit.MICROS)).named(name)),
             Map.entry(LocalTime.class, (name, b) -> b.optional(PrimitiveType.PrimitiveTypeName.INT32).as(LogicalTypeAnnotation.timeType(true, LogicalTypeAnnotation.TimeUnit.MILLIS)).named(name)),
             Map.entry(LocalDate.class, (name, b) -> b.optional(PrimitiveType.PrimitiveTypeName.INT32).as(LogicalTypeAnnotation.dateType()).named(name))
     );
@@ -149,13 +149,15 @@ public class MessageTypeConverter {
                                 .named(columnName));
                         break;
                     case java.sql.Types.TIMESTAMP:
+                        int tsPrecision = metaData.getPrecision(i);
+                        LogicalTypeAnnotation.TimeUnit tsUnit = (tsPrecision > 3)
+                                ? LogicalTypeAnnotation.TimeUnit.MICROS
+                                : LogicalTypeAnnotation.TimeUnit.MILLIS;
                         builder.addField((nullable == ResultSetMetaData.columnNoNulls
                                 ? Types.required(PrimitiveType.PrimitiveTypeName.INT64).as(
-                                LogicalTypeAnnotation.timestampType(false,
-                                        LogicalTypeAnnotation.TimeUnit.MILLIS))
+                                LogicalTypeAnnotation.timestampType(false, tsUnit))
                                 : Types.optional(PrimitiveType.PrimitiveTypeName.INT64).as(
-                                LogicalTypeAnnotation.timestampType(false,
-                                        LogicalTypeAnnotation.TimeUnit.MILLIS)))
+                                LogicalTypeAnnotation.timestampType(false, tsUnit)))
                                 .named(columnName));
                         break;
                     case java.sql.Types.DECIMAL:

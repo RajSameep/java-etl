@@ -97,8 +97,13 @@ public class ResultSetToGroupConverter {
                         Timestamp ts = rs.getTimestamp(columnName);
 
                         if (ts != null) {
-                            long epochMillis = ts.getTime();
-                            group.add(columnName, epochMillis);
+                            int tsPrecision = metadata.getPrecision(i);
+                            if (tsPrecision > 3) {
+                                long epochMicros = (ts.getTime() / 1000) * 1_000_000 + (ts.getNanos() / 1000);
+                                group.add(columnName, epochMicros);
+                            } else {
+                                group.add(columnName, ts.getTime());
+                            }
                         }
                         break;
                     case Types.DECIMAL:
