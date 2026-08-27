@@ -98,7 +98,7 @@ public class ResultSetToGroupConverter {
 
                         if (ts != null) {
                             int tsPrecision = metadata.getPrecision(i);
-                            if (tsPrecision == 0 || tsPrecision > 3) {
+                            if (tsPrecision > 3) {
                                 long epochMicros = (ts.getTime() / 1000) * 1_000_000 + (ts.getNanos() / 1000);
                                 group.add(columnName, epochMicros);
                             } else {
