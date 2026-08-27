@@ -150,7 +150,7 @@ public class MessageTypeConverter {
                         break;
                     case java.sql.Types.TIMESTAMP:
                         int tsPrecision = metaData.getPrecision(i);
-                        LogicalTypeAnnotation.TimeUnit tsUnit = (tsPrecision > 3)
+                        LogicalTypeAnnotation.TimeUnit tsUnit = (tsPrecision == 0 || tsPrecision > 3)
                                 ? LogicalTypeAnnotation.TimeUnit.MICROS
                                 : LogicalTypeAnnotation.TimeUnit.MILLIS;
                         builder.addField((nullable == ResultSetMetaData.columnNoNulls
