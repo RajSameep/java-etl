@@ -37,10 +37,14 @@ public class Extractor {
     public interface FetchSizeStep {
         WriterStep withFetchSize(int fetchSize);
 
+        Result<ExtractResult> toCsv(String writePath);
+
         Result<ExtractResult> toParquet(String writePath);
     }
 
     public interface WriterStep {
+        Result<ExtractResult> toCsv(String writePath);
+
         Result<ExtractResult> toParquet(String writePath);
     }
 
@@ -86,10 +90,16 @@ public class Extractor {
         @Override
         public Result<ExtractResult> toParquet(String writePath) {
             this.writePath = writePath;
-            return execute();
+            return execute(FileType.PARQUET);
         }
 
-        private Result<ExtractResult> execute() {
+        @Override
+        public Result<ExtractResult> toCsv(String writePath) {
+            this.writePath = writePath;
+            return execute(FileType.CSV);
+        }
+
+        private Result<ExtractResult> execute(FileType fileType) {
             return GenericFileReader.readFile(queryPath)
                     .map(template -> TemplateUtil.render(template, parameters))
                     .flatMap(query -> Result.of(() -> {
@@ -99,7 +109,7 @@ public class Extractor {
                             ps.setFetchSize(fetchSize);
 
                             try (ResultSet rs = ps.executeQuery()) {
-                                return DataSink.write(writePath, FileType.PARQUET, jobName, rs, fetchSize, partitionKeys)
+                                return DataSink.write(writePath, fileType, jobName, rs, fetchSize, partitionKeys)
                                         .map(ExtractResult::new)
                                         .get();
                             }

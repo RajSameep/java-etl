@@ -17,6 +17,8 @@ public class DataSink {
     public static Result<FileMetaData> write(String writePath, FileType fileType, String tableName, ResultSet resultSet, Integer batchSize, List<String> partitionKeys) {
         if (fileType == FileType.PARQUET) {
             return ParquetWriterHelper.writeBatched(writePath, tableName, resultSet, batchSize, partitionKeys);
+        } else if (fileType == FileType.CSV) {
+            return CsvWriterHelper.writeBatched(writePath, tableName, resultSet, batchSize, partitionKeys);
         }
         log.error("Unsupported output path: " + writePath);
         return Result.failure("Unsupported file format provided");
@@ -25,6 +27,8 @@ public class DataSink {
     public static <T> Result<FileMetaData> writeStream(String writePath, FileType fileType, String tableName, Integer batchSize, Stream<T> data, Class<T> tClass, List<String> partitionKeys) {
         if (fileType == FileType.PARQUET) {
             return ParquetWriterHelper.writeBatched(writePath, tableName, batchSize, data, tClass, partitionKeys);
+        } else if (fileType == FileType.CSV) {
+//            return CsvWriterHelper.writeBatched(writePath, tableName, batchSize, data, tClass, partitionKeys);
         }
         log.error("Unsupported output path: " + writePath);
         return Result.failure("Unsupported file format provided");
