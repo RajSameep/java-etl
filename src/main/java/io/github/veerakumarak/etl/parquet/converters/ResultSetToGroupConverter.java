@@ -44,9 +44,19 @@ public class ResultSetToGroupConverter {
                             group.add(columnName, longValue);
                         }
                         break;
-                    case Types.INTEGER:
-                    case Types.SMALLINT:
                     case Types.TINYINT:
+                        byte byteValue = rs.getByte(columnName);
+                        if (!rs.wasNull()) {
+                            group.add(columnName, byteValue);
+                        }
+                        break;
+                    case Types.SMALLINT:
+                        short shortValue = rs.getShort(columnName);
+                        if (!rs.wasNull()) {
+                            group.add(columnName, shortValue);
+                        }
+                        break;
+                    case Types.INTEGER:
                         int intValue = rs.getInt(columnName);
                         if (!rs.wasNull()) {
                             group.add(columnName, intValue);
