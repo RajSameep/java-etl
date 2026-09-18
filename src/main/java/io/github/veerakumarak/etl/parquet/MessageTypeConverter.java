@@ -87,9 +87,25 @@ public class MessageTypeConverter {
                                 : Types.optional(PrimitiveType.PrimitiveTypeName.INT64))
                                 .named(columnName));
                         break;
-                    case java.sql.Types.INTEGER:
-                    case java.sql.Types.SMALLINT:
                     case java.sql.Types.TINYINT:
+                        builder.addField((nullable == ResultSetMetaData.columnNoNulls
+                                ? Types.required(PrimitiveType.PrimitiveTypeName.INT32)
+                                .as(LogicalTypeAnnotation.intType(8, true))
+                                : Types.optional(PrimitiveType.PrimitiveTypeName.INT32)
+                                .as(LogicalTypeAnnotation.intType(8, true)))
+                                .named(columnName));
+                        break;
+
+                    case java.sql.Types.SMALLINT:
+                        builder.addField((nullable == ResultSetMetaData.columnNoNulls
+                                ? Types.required(PrimitiveType.PrimitiveTypeName.INT32)
+                                .as(LogicalTypeAnnotation.intType(16, true))
+                                : Types.optional(PrimitiveType.PrimitiveTypeName.INT32)
+                                .as(LogicalTypeAnnotation.intType(16, true)))
+                                .named(columnName));
+                        break;
+
+                    case java.sql.Types.INTEGER:
                         builder.addField((nullable == ResultSetMetaData.columnNoNulls
                                 ? Types.required(PrimitiveType.PrimitiveTypeName.INT32)
                                 : Types.optional(PrimitiveType.PrimitiveTypeName.INT32))
