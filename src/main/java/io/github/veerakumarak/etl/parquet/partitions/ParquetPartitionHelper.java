@@ -3,10 +3,13 @@ package io.github.veerakumarak.etl.parquet.partitions;
 import io.github.veerakumarak.fp.Result;
 import io.github.veerakumarak.fp.failures.InternalFailure;
 import org.apache.parquet.example.data.Group;
+import org.apache.parquet.schema.LogicalTypeAnnotation;
 import org.apache.parquet.schema.MessageType;
+import org.apache.parquet.schema.Type;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Objects;
 
@@ -18,7 +21,7 @@ public class ParquetPartitionHelper {
 
     public static Result<String> getPartitionPrefix(MessageType schema, List<String> partitionKeys, Group group) {
         return Result.of(() -> {
-            if (partitionKeys.isEmpty()) {
+            if (Objects.isNull(partitionKeys) || partitionKeys.isEmpty()) {
                 return DEFAULT_PARTITION_NAME;
             }
             List<String> segments = partitionKeys.stream()
@@ -33,7 +36,13 @@ public class ParquetPartitionHelper {
 //                            throw new InternalFailure("partition key '" + fieldName + "' is not present in this group");
                         }
 
-                        String extractedValue = group.getValueToString(fieldIndex, 0);
+                        String extractedValue;
+                        Type fieldType = schema.getType(fieldIndex);
+                        if (fieldType.getLogicalTypeAnnotation() instanceof LogicalTypeAnnotation.DateLogicalTypeAnnotation) {
+                            extractedValue = LocalDate.ofEpochDay(group.getInteger(fieldIndex, 0)).toString();
+                        } else {
+                            extractedValue = group.getValueToString(fieldIndex, 0);
+                        }
                         if (Objects.isNull(extractedValue) || extractedValue.isEmpty()) {
                             return null;
 //                            throw new InternalFailure("partition key '" + fieldName + "' has null or empty value");
@@ -42,10 +51,7 @@ public class ParquetPartitionHelper {
                     })
                     .filter(Objects::nonNull)
                     .toList();
-            if (segments.isEmpty()) {
-                return DEFAULT_PARTITION_NAME;
-            }
-            return String.join("/", segments);
+            return segments.isEmpty() ? DEFAULT_PARTITION_NAME : String.join("/", segments);
         });
     }
 }
