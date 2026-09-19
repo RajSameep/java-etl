@@ -21,7 +21,7 @@ public class ParquetPartitionHelper {
 
     public static Result<String> getPartitionPrefix(MessageType schema, List<String> partitionKeys, Group group) {
         return Result.of(() -> {
-            if (partitionKeys.isEmpty()) {
+            if (Objects.isNull(partitionKeys) || partitionKeys.isEmpty()) {
                 return DEFAULT_PARTITION_NAME;
             }
             List<String> segments = partitionKeys.stream()
@@ -51,10 +51,7 @@ public class ParquetPartitionHelper {
                     })
                     .filter(Objects::nonNull)
                     .toList();
-            if (segments.isEmpty()) {
-                return DEFAULT_PARTITION_NAME;
-            }
-            return String.join("/", segments);
+            return segments.isEmpty() ? DEFAULT_PARTITION_NAME : String.join("/", segments);
         });
     }
 }
