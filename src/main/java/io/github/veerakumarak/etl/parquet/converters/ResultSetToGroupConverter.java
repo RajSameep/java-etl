@@ -13,12 +13,13 @@ import java.math.BigDecimal;
 import java.sql.*;
 import java.time.LocalTime;
 import java.time.temporal.ChronoField;
+import java.util.Set;
 
 public class ResultSetToGroupConverter {
 
     private static final Logger log = LoggerFactory.getLogger(ResultSetToGroupConverter.class);
 
-    public static Result<Group> convert(MessageType schema, ResultSetMetaData metadata, ResultSet rs) {
+    public static Result<Group> convert(MessageType schema, ResultSetMetaData metadata, ResultSet rs, Set<String> ignoreColumns) {
         return Result.of(() -> {
             Group group = new SimpleGroup(schema);
             int columnCount = metadata.getColumnCount();
@@ -26,6 +27,11 @@ public class ResultSetToGroupConverter {
                 // Use getColumnLabel() to get the alias (AS name) from SELECT queries
                 // This ensures we use the alias (e.g., "PrgsvcID") instead of original column name (e.g., "prgsvcid")
                 String columnName = metadata.getColumnLabel(i);
+
+                if (ignoreColumns.contains(columnName)) {
+                    continue;
+                }
+
                 int columnType = SqlTypeInferrer.getEffectiveType(metadata, i).orElseThrow();
                 int scale = metadata.getScale(i);
                 int precision = metadata.getPrecision(i);

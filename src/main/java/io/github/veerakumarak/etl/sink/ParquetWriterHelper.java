@@ -43,8 +43,15 @@ public class ParquetWriterHelper {
                 .build();
     }
 
-    protected static Result<FileMetaData> writeBatched(String writePath, String tableName, ResultSet resultSet, Integer batchSize, List<String> partitionKeys) {
+    private static MessageType excludeFields(MessageType schema, List<String> fieldNames) {
+        if (fieldNames == null || fieldNames.isEmpty()) return schema;
+        return new MessageType(schema.getName(),
+                schema.getFields().stream()
+                        .filter(f -> !fieldNames.contains(f.getName()))
+                        .collect(Collectors.toList()));
+    }
 
+    protected static Result<FileMetaData> writeBatched(String writePath, String tableName, ResultSet resultSet, Integer batchSize, List<String> partitionKeys) {
         return Result.of(() -> {
             if (Objects.isNull(resultSet)) {
                 throw new InternalFailure("ResultSet is null");
@@ -57,23 +64,25 @@ public class ParquetWriterHelper {
             MessageType schema = MessageTypeConverter.fromResultSet(tableName, metaData)
                     .orElseThrow(() -> new InternalFailure("Could not get schema from result set"));
 
+            MessageType writeSchema = excludeFields(schema, partitionKeys);
+
             Map<String, ParquetWriter<Group>> writers = new HashMap<>();
             Map<String, Long> partitionCounts = new HashMap<>();
             List<Group> batch = new ArrayList<>(batchSize);
             while (resultSet.next()) {
-                Group group = ResultSetToGroupConverter.convert(schema, metaData, resultSet)
+                Group group = ResultSetToGroupConverter.convert(writeSchema, metaData, resultSet, new HashSet<>(partitionKeys))
                         .orElseThrow(() -> new InternalFailure("Could not get group from result set"));
                 batch.add(group);
                 if (batch.size() >= batchSize) {
                     for (Group g : batch) {
-                        write(schema, g, writers, partitionCounts, writePath, tableName, partitionKeys).orThrow();
+                        write(writeSchema, g, writers, partitionCounts, writePath, tableName, partitionKeys).orThrow();
                     }
                     batch.clear();
                 }
             }
             if (!batch.isEmpty()) {
                 for (Group g : batch) {
-                    write(schema, g, writers, partitionCounts, writePath, tableName, partitionKeys).orThrow();
+                    write(writeSchema, g, writers, partitionCounts, writePath, tableName, partitionKeys).orThrow();
                 }
             }
             for (ParquetWriter<Group> writer : writers.values()) {
@@ -119,7 +128,8 @@ public class ParquetWriterHelper {
 
             MessageType schema = MessageTypeConverter.fromClass(tClass);
 
-            SimpleGroupFactory groupFactory = new SimpleGroupFactory(schema);
+            MessageType writeSchema = excludeFields(schema, partitionKeys);
+            SimpleGroupFactory writeGroupFactory = new SimpleGroupFactory(writeSchema);
 
             Map<String, ParquetWriter<Group>> writers = new HashMap<>();
             Map<String, Long> partitionCounts = new HashMap<>();
@@ -128,7 +138,7 @@ public class ParquetWriterHelper {
             Iterator<T> iterator = tStream.iterator();
             while (iterator.hasNext()) {
                 T tDatum = iterator.next();
-                batch.add(ClassToGroupConverter.toGroup(tDatum, groupFactory));
+                batch.add(ClassToGroupConverter.toGroup(tDatum, writeGroupFactory, new HashSet<>(partitionKeys)));
                 if (batch.size() >= batchSize) {
                     for (Group g : batch) {
                         write(schema, g, writers, partitionCounts, writePath, tableName, partitionKeys).orThrow();

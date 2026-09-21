@@ -21,10 +21,7 @@ import java.lang.reflect.Modifier;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.time.*;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -32,15 +29,15 @@ public class ClassToGroupConverter {
 
     private static final Logger log = LoggerFactory.getLogger(ClassToGroupConverter.class);
 
-    public static <T> List<Group> toGroup(List<T> tList, MessageType schema) {
-        SimpleGroupFactory groupFactory = new SimpleGroupFactory(schema);
+//    public static <T> List<Group> toGroup(List<T> tList, MessageType schema, Set<String> fieldNames) {
+//        SimpleGroupFactory groupFactory = new SimpleGroupFactory(schema);
+//
+//        return tList.stream()
+//                .map(record -> toGroup(record, groupFactory, fieldNames))
+//                .toList();
+//    }
 
-        return tList.stream()
-                .map(record -> toGroup(record, groupFactory))
-                .toList();
-    }
-
-    public static <T> Group toGroup(T t, SimpleGroupFactory groupFactory) {
+    public static <T> Group toGroup(T t, SimpleGroupFactory groupFactory, Set<String> ignoreFieldNames) {
         Group group = groupFactory.newGroup();
         Class<?> tClass = t.getClass();
 
@@ -48,6 +45,10 @@ public class ClassToGroupConverter {
             String name = DataAnnotationHelper.getName(field);
 
             if (field.isSynthetic() || Modifier.isStatic(field.getModifiers())) {
+                continue;
+            }
+
+            if (ignoreFieldNames.contains(name)) {
                 continue;
             }
 
