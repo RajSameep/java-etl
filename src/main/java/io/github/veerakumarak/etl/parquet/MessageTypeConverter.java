@@ -174,19 +174,9 @@ public class MessageTypeConverter {
                                 .named(columnName));
                         break;
                     case java.sql.Types.TIMESTAMP:
-                        int fractionalScale = metaData.getScale(i);
-                        if (fractionalScale > 6) {
-                            timeUnit = LogicalTypeAnnotation.TimeUnit.NANOS;
-                        } else if (fractionalScale > 3) {
-                            timeUnit = LogicalTypeAnnotation.TimeUnit.MICROS;
-                        } else {
-                            timeUnit = LogicalTypeAnnotation.TimeUnit.MILLIS;
-                        }
                         builder.addField((nullable == ResultSetMetaData.columnNoNulls
-                                ? Types.required(PrimitiveType.PrimitiveTypeName.INT64).as(
-                                LogicalTypeAnnotation.timestampType(false, timeUnit))
-                                : Types.optional(PrimitiveType.PrimitiveTypeName.INT64).as(
-                                LogicalTypeAnnotation.timestampType(false, timeUnit)))
+                                ? Types.required(PrimitiveType.PrimitiveTypeName.INT96)
+                                : Types.optional(PrimitiveType.PrimitiveTypeName.INT96))
                                 .named(columnName));
                         break;
                     case java.sql.Types.DECIMAL:

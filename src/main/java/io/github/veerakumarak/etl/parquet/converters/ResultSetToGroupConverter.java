@@ -116,24 +116,14 @@ public class ResultSetToGroupConverter {
                             }
                         }
                         break;
+
                     case Types.TIMESTAMP:
                         Timestamp ts = rs.getTimestamp(columnName);
                         if (!rs.wasNull() && ts != null) {
                             long epochSecond = ts.getTime() / 1_000L;
                             int nanos = ts.getNanos();
-
-                            if (scale > 6) {
-                                // NANOS -> INT64
-                                long epochNanos = Math.addExact(Math.multiplyExact(epochSecond, 1_000_000_000L), nanos);
-                                group.add(columnName, epochNanos);
-                            } else if (scale > 3) {
-                                // MICROS -> INT64
-                                long epochMicros = Math.addExact(Math.multiplyExact(epochSecond, 1_000_000L), nanos / 1_000L);
-                                group.add(columnName, epochMicros);
-                            } else {
-                                // MILLIS -> INT64
-                                group.add(columnName, ts.getTime());
-                            }
+                            long epochNanos = Math.addExact(Math.multiplyExact(epochSecond, 1_000_000_000L), nanos);
+                            group.add(columnName, epochNanos);
                         }
                         break;
                     case Types.DECIMAL:
