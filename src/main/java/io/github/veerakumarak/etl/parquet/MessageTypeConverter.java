@@ -175,8 +175,10 @@ public class MessageTypeConverter {
                         break;
                     case java.sql.Types.TIMESTAMP:
                         builder.addField((nullable == ResultSetMetaData.columnNoNulls
-                                ? Types.required(PrimitiveType.PrimitiveTypeName.INT96)
-                                : Types.optional(PrimitiveType.PrimitiveTypeName.INT96))
+                                ? Types.required(PrimitiveType.PrimitiveTypeName.INT64).as(
+                                LogicalTypeAnnotation.timestampType(false, LogicalTypeAnnotation.TimeUnit.NANOS))
+                                : Types.optional(PrimitiveType.PrimitiveTypeName.INT64).as(
+                                LogicalTypeAnnotation.timestampType(false, LogicalTypeAnnotation.TimeUnit.NANOS)))
                                 .named(columnName));
                         break;
                     case java.sql.Types.DECIMAL:

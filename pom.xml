@@ -4,7 +4,7 @@
 
     <groupId>io.github.veerakumarak</groupId>
     <artifactId>java-etl</artifactId>
-    <version>3.2.5</version>
+    <version>3.2.6</version>
     <packaging>jar</packaging>
 
     <name>${project.groupId}:${project.artifactId}</name>
