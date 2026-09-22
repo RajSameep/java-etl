@@ -75,14 +75,14 @@ public class ParquetWriterHelper {
                 batch.add(group);
                 if (batch.size() >= batchSize) {
                     for (Group g : batch) {
-                        write(writeSchema, g, writers, partitionCounts, writePath, tableName, partitionKeys).orThrow();
+                        write(schema, writeSchema, g, writers, partitionCounts, writePath, tableName, partitionKeys).orThrow();
                     }
                     batch.clear();
                 }
             }
             if (!batch.isEmpty()) {
                 for (Group g : batch) {
-                    write(writeSchema, g, writers, partitionCounts, writePath, tableName, partitionKeys).orThrow();
+                    write(schema, writeSchema, g, writers, partitionCounts, writePath, tableName, partitionKeys).orThrow();
                 }
             }
             for (ParquetWriter<Group> writer : writers.values()) {
@@ -101,13 +101,13 @@ public class ParquetWriterHelper {
         return String.format("%s/%s/%s.parquet", writePath, partitionPrefix, tableName);
     }
 
-    private static Failure write(MessageType schema, Group group, Map<String, ParquetWriter<Group>> writers, Map<String, Long> partitionCounts, String writePath, String tableName, List<String> partitionKeys) {
+    private static Failure write(MessageType schema, MessageType writeSchema, Group group, Map<String, ParquetWriter<Group>> writers, Map<String, Long> partitionCounts, String writePath, String tableName, List<String> partitionKeys) {
         return Failure.of(() -> {
             String partitionPrefix = ParquetPartitionHelper.getPartitionPrefix(schema, partitionKeys, group).orElseThrow();
             ParquetWriter<Group> writer = writers.computeIfAbsent(partitionPrefix, val -> {
                 String filePath = getFilePath(writePath, partitionPrefix, tableName);
                 try {
-                    return createWriter(filePath, schema, ParquetAwsManager.getConfiguration());
+                    return createWriter(filePath, writeSchema, ParquetAwsManager.getConfiguration());
                 } catch (IOException e) {
                     throw new InternalFailure(e.getMessage());
                 }
@@ -141,14 +141,14 @@ public class ParquetWriterHelper {
                 batch.add(ClassToGroupConverter.toGroup(tDatum, writeGroupFactory, new HashSet<>(partitionKeys)));
                 if (batch.size() >= batchSize) {
                     for (Group g : batch) {
-                        write(schema, g, writers, partitionCounts, writePath, tableName, partitionKeys).orThrow();
+                        write(schema, writeSchema, g, writers, partitionCounts, writePath, tableName, partitionKeys).orThrow();
                     }
                     batch.clear();
                 }
             }
             if (!batch.isEmpty()) {
                 for (Group g : batch) {
-                    write(schema, g, writers, partitionCounts, writePath, tableName, partitionKeys).orThrow();
+                    write(schema, writeSchema, g, writers, partitionCounts, writePath, tableName, partitionKeys).orThrow();
                 }
             }
 
