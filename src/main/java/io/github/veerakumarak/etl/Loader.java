@@ -98,7 +98,7 @@ public class Loader {
                     try {
                         if (truncate) {
                             log.info("Truncating table: {} before inserting.", tableName);
-                            dataSource.truncate(conn, tableName).orElseThrow();
+                            dataSource.truncate(conn, tableName).orThrow();
                         }
 
                         // Pass the existing connection to the reader helper

@@ -1,5 +1,6 @@
 package io.github.veerakumarak.etl.datasource;
 
+import io.github.veerakumarak.fp.Failure;
 import io.github.veerakumarak.fp.Pair;
 import io.github.veerakumarak.fp.Result;
 
@@ -22,6 +23,6 @@ public interface IDataSource {
     Result<ResultSetMetaData> getSchema(Connection connection, String tableName);
     Result<ResultSet> read(Connection connection, String sql);
     Result<ResultSet> read(Connection connection, String sql, Integer fetchSize);
-    Result<Void> truncate(Connection connection, String tableName);
+    Failure truncate(Connection connection, String tableName);
     Result<Long> insertBatch(Connection connection, String sql, List<List<Pair<Object, Integer>>> batchValues, Integer batchSize);
 }

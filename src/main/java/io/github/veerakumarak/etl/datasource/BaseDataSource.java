@@ -1,6 +1,7 @@
 package io.github.veerakumarak.etl.datasource;
 
 import io.github.veerakumarak.etl.utils.RegexUtil;
+import io.github.veerakumarak.fp.Failure;
 import io.github.veerakumarak.fp.Pair;
 import io.github.veerakumarak.fp.Result;
 import io.github.veerakumarak.fp.failures.InvalidRequest;
@@ -150,18 +151,16 @@ public abstract class BaseDataSource implements IDataSource {
     }
 
     @Override
-    public Result<Void> truncate(Connection connection, String tableName) {
-        return Result.of(() -> {
+    public Failure truncate(Connection connection, String tableName) {
+        return Failure.of(() -> {
             if(validateTableName(tableName)){
                 String query = "TRUNCATE TABLE " + tableName;
                 try(Statement stmt = connection.createStatement()){
                     stmt.executeUpdate(query);
                 }
-                return null;
             }else{
                 throw new IllegalArgumentException("Invalid tableName");
             }
-
         });
     }
 
